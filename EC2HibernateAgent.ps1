@@ -105,18 +105,14 @@ Function RunHibernateAgent {
                         Write-EventLog –LogName Application –Source $eventLogSource –EntryType Warning –EventID 13 –Message "Failed to run EC2HibernateAgent task" -ErrorAction SilentlyContinue
                     }
                 }
-            
-                $wc = $null
+
                 try {
-                    $wc = New-Object System.Net.WebClient
-                    $instanceAction = $wc.DownloadString("http://169.254.169.254/latest/meta-data/spot/instance-action")
+                    $token = Invoke-RestMethod -Headers @{"X-aws-ec2-metadata-token-ttl-seconds" = "21600"} -Method PUT –Uri http://169.254.169.254/latest/api/token
+                    $instanceAction = Invoke-RestMethod -Headers @{"X-aws-ec2-metadata-token" = $token} -Method GET -Uri http://169.254.169.254/latest/meta-data/spot/instance-action
                 }
                 catch [Exception] {
                     # We expect a 404 exception if the instance-action metadata is not set
                     $instanceAction = $null
-                }
-                finally {
-                    $wc.Dispose()
                 }
         
                 if (($instanceAction) -and ($instanceAction -match "hibernate")) {
