@@ -89,6 +89,7 @@ Function RunHibernateAgent {
         
         $instanceAction = $null
         $lastInstanceActionSeen = $null
+        $hibernateConfigured = $null;
 
         if ($runLoop) {
             Write-EventLog –LogName Application –Source $eventLogSource –EntryType Information –EventID 2 –Message "Waiting for hibernation signal with pollingInterval $pollingInterval" -ErrorAction SilentlyContinue
@@ -104,6 +105,22 @@ Function RunHibernateAgent {
                     if (-not $?) {
                         Write-EventLog –LogName Application –Source $eventLogSource –EntryType Warning –EventID 13 –Message "Failed to run EC2HibernateAgent task" -ErrorAction SilentlyContinue
                     }
+                }
+
+                try {
+                    # Check Hibernate-Option.Configured meta data 
+                    $token = Invoke-RestMethod -Headers @{"X-aws-ec2-metadata-token-ttl-seconds" = "21600"} -Method PUT –Uri http://169.254.169.254/latest/api/token
+                    $hibernateConfigured = Invoke-RestMethod -Headers @{"X-aws-ec2-metadata-token" = $token} -Method GET -Uri http://169.254.169.254/latest/meta-data/hibernation/configured
+                }
+                catch [Exception] {
+                    # We expect a 404 exception if the hibernation-configured metadata is not set
+                    Write-EventLog –LogName Application –Source $eventLogSource –EntryType Information –EventID 15 –Message "Failed to get Hibernate-Option.Configured meta-data" -ErrorAction SilentlyContinue
+                    $hibernateConfigured = $null;
+                }
+
+                if (($hibernateConfigured) -and ($hibernateConfigured -match $true)) {
+                    Write-EventLog –LogName Application –Source $eventLogSource –EntryType Information –EventID 16 –Message "Hibernation-option.Configured = true. Existing Spot Window Agent" -ErrorAction SilentlyContinue
+                    Exit 0 # hibernation-option.Configured = true.  Exiting Spot window agent
                 }
 
                 try {
