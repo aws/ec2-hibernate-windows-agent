@@ -109,18 +109,17 @@ Function RunHibernateAgent {
 
                 try {
                     # Check Hibernate-Option.Configured meta data 
-                    Write-EventLog –LogName Application –Source $eventLogSource –EntryType Information –EventID 15 –Message "Sending an IMDS_V2 reuqest to get the Hibernate-Option.Configured meta-data" -ErrorAction SilentlyContinue
                     $token = Invoke-RestMethod -Headers @{"X-aws-ec2-metadata-token-ttl-seconds" = "21600"} -Method PUT –Uri http://169.254.169.254/latest/api/token
                     $hibernateConfigured = Invoke-RestMethod -Headers @{"X-aws-ec2-metadata-token" = $token} -Method GET -Uri http://169.254.169.254/latest/meta-data/hibernation/configured
                 }
                 catch [Exception] {
                     # We expect a 404 exception if the hibernation-configured metadata is not set
-                    Write-EventLog –LogName Application –Source $eventLogSource –EntryType Information –EventID 16 –Message "Failed to get the Hibernate-Option.Configured meta-data" -ErrorAction SilentlyContinue
+                    Write-EventLog –LogName Application –Source $eventLogSource –EntryType Information –EventID 15 –Message "Failed to get the Hibernate-Option.Configured meta-data" -ErrorAction SilentlyContinue
                     $hibernateConfigured = $null;
                 }
 
                 if (($hibernateConfigured) -and ($hibernateConfigured -match $true)) {
-                    Write-EventLog –LogName Application –Source $eventLogSource –EntryType Information –EventID 17 –Message "Hibernation-option.Configured = true. Existing the Spot Window Agent" -ErrorAction SilentlyContinue
+                    Write-EventLog –LogName Application –Source $eventLogSource –EntryType Information –EventID 16 –Message "Hibernation-option.Configured = true. Existing EC2HibernateAgent" -ErrorAction SilentlyContinue
                     Exit 0 # hibernation-option.Configured = true.  Exiting Spot window agent
                 }
 
