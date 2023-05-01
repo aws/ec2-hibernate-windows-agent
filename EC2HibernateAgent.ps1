@@ -119,7 +119,7 @@ Function RunHibernateAgent {
                 }
 
                 if (($hibernateConfigured) -and ($hibernateConfigured -match $true)) {
-                    Write-EventLog –LogName Application –Source $eventLogSource –EntryType Information –EventID 16 –Message "Hibernation-option.Configured = true. Existing EC2HibernateAgent" -ErrorAction SilentlyContinue
+                    Write-EventLog –LogName Application –Source $eventLogSource –EntryType Information –EventID 16 –Message "Hibernation-option.Configured = true. Exiting EC2HibernateAgent" -ErrorAction SilentlyContinue
                     Exit 0 # hibernation-option.Configured = true.  Exiting Spot window agent
                 }
 
