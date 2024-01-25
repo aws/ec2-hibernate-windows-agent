@@ -1,4 +1,4 @@
-# EC2 Hibernate Windows Agent (Derepcated)
+# EC2 Hibernate Windows Agent (Deprecated)
 
 > As of December 2023, the ec2-hibernate-windows-agent is officially deprecated. It is superseded by the new version of EC2 Spot Hibernation.
 > The new version of EC2 Spot Hibernation provides significant improvements.
